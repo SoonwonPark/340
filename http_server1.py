@@ -8,6 +8,7 @@ import os.path
 # basic http server in python
 # reference: https://docs.python.org/2/library/socket.html
 class HTTPserver():
+	#TODO: set timeout
 	def __init__(self, port=50000):
 		self.port = port
 		# AF_INET: an address family (IPv4) that the socket uses
@@ -45,6 +46,7 @@ class HTTPserver():
 		print "requested path: " + req_file
 
 		if req_method == "GET":
+			#TODO: check htm / html. -> if the file exists, but is not an HTML file.: return 403 Forbidden
 			if os.path.isfile(self.www_path + req_file):
 				res = self.HTTP_response_builder(200, self.www_path + req_file)
 			else:
@@ -63,7 +65,7 @@ class HTTPserver():
 			content = f.read()
 			f.close()
 
-			res = res.encode() + content
+			res = res.encode() + '\r\n' + content
 		else:
 			"WARNING: cannot find requested file"
 		return res
@@ -73,6 +75,7 @@ class HTTPserver():
 		header = 'HTTP/1.1'
 		if code == 200:
 			header += ' 200 OK\n'
+			header += 'Content-Type: text/html\n'
 		elif code == 404:
 			header += ' 404 Not Found\n'
 		else:

@@ -42,8 +42,9 @@ class Client:
             third_slash = self.address.find('/', 7)
             self.path = self.address[third_slash:]
             self.address = self.address[7:third_slash]
-            self.host = socket.getfqdn(self.address)
-            self.hostip = socket.gethostbyname(self.host)
+            # self.host = socket.getfqdn(self.address)
+            # self.hostip = socket.gethostbyname(self.host)
+            self.hostip = "127.0.0.1"
 
         if self.address.startswith("https://"):
             exit("error: use 'http://'")
@@ -66,7 +67,7 @@ print("path: " + myClient.path)
 mysocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # connect the server with port 80
-mysocket.connect((myClient.hostip, 80))
+mysocket.connect((myClient.hostip, 10000))
 
 print("Trying to connect!")
 
