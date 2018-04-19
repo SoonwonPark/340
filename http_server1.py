@@ -33,9 +33,6 @@ class HTTPserver():
 			print "A client connected: " + str(addr)
 
 			req = conn.recv(1024)
-			# if not req:
-			# 	break
-			# else:
 			self.serve_http(req, conn)
 			conn.close()
 
@@ -46,6 +43,7 @@ class HTTPserver():
 		req_file = req_split[1]
 		print "method: " + req_method
 		print "requested path: " + req_file
+
 		if req_method == "GET":
 			if os.path.isfile(self.www_path + req_file):
 				res = self.HTTP_response_builder(200, self.www_path + req_file)
@@ -59,6 +57,7 @@ class HTTPserver():
 	def HTTP_response_builder(self, code, path):
 		res = self.generate_HTTP_header(code)
 		print res
+
 		if code == 200:
 			f = open(path, 'rb')
 			content = f.read()
