@@ -8,7 +8,7 @@ import os.path
 # basic http server in python
 # reference: https://docs.python.org/2/library/socket.html
 class HTTPserver():
-	def __init__(self, port=10000):
+	def __init__(self, port=50000):
 		self.port = port
 		# AF_INET: an address family (IPv4) that the socket uses
 		# SOCK_STREAM: TCP socket
@@ -18,25 +18,26 @@ class HTTPserver():
 	# create a socket connection
 	def start(self):
 		try:
-			self.s.bind((socket.gethostname(), self.port))
+			self.s.bind(('', self.port))
 			print "Server started with port: " + str(self.port)
 		except socket.error as e:
 			print "ERROR: Cannot bind to port: " + str(self.port)
 			self.s.close()
 
-		# backlog arg is the maximum number of queued connections which should be at least 1
-		# When the max backlog is reached, the server doesn't respond to SYN message.
-		self.s.listen(5)
-		conn, addr = self.s.accept()
-		print "A client connected: " + str(addr)
 		# listen on accepted connection in the loop
 		while True:
+			# backlog arg is the maximum number of queued connections which should be at least 1
+			# When the max backlog is reached, the server doesn't respond to SYN message.
+			self.s.listen(5)
+			conn, addr = self.s.accept()
+			print "A client connected: " + str(addr)
+
 			req = conn.recv(1024)
-			if not req:
-				break
-			else:
-				self.serve_http(req, conn)
-		conn.close()
+			# if not req:
+			# 	break
+			# else:
+			self.serve_http(req, conn)
+			conn.close()
 
 	# serve to the http request
 	def serve_http(self, req, conn):
