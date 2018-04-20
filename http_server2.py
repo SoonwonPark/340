@@ -1,14 +1,22 @@
 __author__ = "Byungjin Jun"
 
-# USAGE: python http_server1.py 10000
+# USAGE: python http_server2.py 10000
+# TO TEST multi connection
+# 1. run this server first
+# 2. connect to this client by running: telnet localhost 10000
+# 3. send a request to the server from other client (Client.py or browser)
+# 4. compare to the result from http_server1.py
 
+import select
+import Queue
 import socket
 import sys
 import os.path
 
 
 # basic http server in python
-# reference: https://docs.python.org/2/library/socket.html
+# ref 1: https://docs.python.org/2/library/socket.html
+# ref 2: https://pymotw.com/2/select/
 class HTTPserver():
 	def __init__(self, port=50000):
 		self.port = port
@@ -16,6 +24,7 @@ class HTTPserver():
 		# AF_INET: an address family (IPv4) that the socket uses
 		# SOCK_STREAM: TCP socket
 		self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.s.setblocking(0)
 
 	# create a socket connection
 	def start(self):
@@ -27,19 +36,58 @@ class HTTPserver():
 			print e
 			self.s.shutdown(socket.SHUT_RDWR)
 
-		# listen on accepted connection in the loop
-		while True:
-			# backlog arg is the maximum number of queued connections which should be at least 1
-			# When the max backlog is reached, the server doesn't respond to SYN message.
-			self.s.listen(5)
-			conn, addr = self.s.accept()
-			print "A client connected: " + str(addr)
+		self.s.listen(5)
 
-			req = conn.recv(1024)
-			self.serve_http(req, conn)
+		inputs = [self.s]
+		outputs = []
+		message_queues = {}
+
+		# The loop for supporting multi connection with 'select'
+		while inputs:
+			readable, writable, exceptional = select.select(inputs, outputs, inputs)
+			for r in readable:
+				# accept connection
+				if r is self.s:
+					conn, addr = r.accept()
+					print "A client connected: " + str(addr)
+					conn.setblocking(0)
+					inputs.append(conn)
+					message_queues[conn] = Queue.Queue()
+				# receive data and handle HTTP request in it
+				else:
+					req = r.recv(1024)
+					if req:
+						# process HTTP here
+						res = self.serve_http(req)
+						message_queues[r].put(res)
+						if r not in outputs:
+							outputs.append(r)
+					else:
+						if r in outputs:
+							outputs.remove(r)
+						inputs.remove(r)
+						r.close()
+						del message_queues[r]
+
+			# send the response to the client
+			for r in writable:
+				try:
+					next_msg = message_queues[r].get_nowait()
+				except Queue.Empty:
+					outputs.remove(r)
+				else:
+					r.send(next_msg)
+
+			# if there was error, close the connection
+			for r in exceptional:
+				inputs.remove(r)
+				if r in outputs:
+					outputs.remove(r)
+				r.close()
+				del message_queues[r]
 
 	# serve to the http request
-	def serve_http(self, req, conn):
+	def serve_http(self, req):
 		req_split = req.split(' ')
 		req_method = req_split[0]
 		if len(req_split) > 1:
@@ -64,8 +112,7 @@ class HTTPserver():
 			res = self.HTTP_response_builder(403)
 			print "ERROR: no support for other methods than 'GET'"
 
-		conn.send(res)
-		conn.close()
+		return res
 
 	# create a response with header and content
 	def HTTP_response_builder(self, code, path=''):
@@ -116,7 +163,7 @@ def is_valid_port(port):
 def main():
 	if len(sys.argv) < 2:
 		print "ERROR: port number required" \
-		      "USAGE: python http_server1.py 10000"
+		      "USAGE: python http_server2.py 10000"
 	else:
 		port = int(sys.argv[1])
 		if is_valid_port(port):
