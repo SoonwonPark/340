@@ -44,7 +44,7 @@ class Client:
             self.address = self.address[7:third_slash]
             # self.host = socket.getfqdn(self.address)
             # self.hostip = socket.gethostbyname(self.host)
-            self.hostip = "127.0.0.1"
+            # self.hostip = "127.0.0.1"
 
         if self.address.startswith("https://"):
             exit("error: use 'http://'")
