@@ -1,6 +1,11 @@
 .idea
 venv
 .DS_Store
+<<<<<<< HEAD
 Server.py
 *.log
 *.pyc
+=======
+*.log
+*.pyc
+>>>>>>> 2bd0d6d2d30f808672c112e32ef106ac93504521

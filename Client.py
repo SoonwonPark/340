@@ -81,6 +81,7 @@ class Client:
 
             self.path = self.address[third_slash:]
             self.address = self.address[7:third_slash]
+<<<<<<< HEAD
 
             portlocation = self.address.find(':', 7)
             if portlocation == -1:
@@ -96,6 +97,11 @@ class Client:
             self.hostip = socket.gethostbyname(self.host)
             self.request = "GET " + self.path + " HTTP/1.1\r\nHost: " + self.host + "\r\n\r\n"
             print("port: " + str(self.port))
+=======
+            # self.host = socket.getfqdn(self.address)
+            # self.hostip = socket.gethostbyname(self.host)
+            # self.hostip = "127.0.0.1"
+>>>>>>> 2bd0d6d2d30f808672c112e32ef106ac93504521
 
 
         elif self.address.startswith("https://"):
@@ -187,6 +193,7 @@ def main():
 
     while(count > 0) :
 
+<<<<<<< HEAD
         if result != myClient.address:
             myClient = Client(result)
             print(1)
@@ -204,6 +211,10 @@ def main():
             print(7)
             myClient.__del__()
             count = count -1
+=======
+# connect the server with port 80
+mysocket.connect((myClient.hostip, 10000))
+>>>>>>> 2bd0d6d2d30f808672c112e32ef106ac93504521
 
     print("redirection is over 10")
 
