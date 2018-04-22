@@ -7,9 +7,9 @@ import sys
 #
 # Include "Host:///" header : complete
 #
-# 301, 302 Rdeirection : incomplete
+# 301, 302 Rdeirection : complete
 #  - example: python Client.py http://airbedandbreakfast.com/
-#  - example: python Client.py http://maps.google.com/ - not working
+#  - example: python Client.py http://maps.google.com/
 #
 # Handle a chain of multiple redirect :complete(10 redirection) : complete
 #  - example: Python Client.py http://thefacebook.com/
