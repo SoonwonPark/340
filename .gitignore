@@ -1,5 +1,6 @@
 .idea
 venv
 .DS_Store
+Server.py
 *.log
 *.pyc

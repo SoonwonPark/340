@@ -1,92 +1,173 @@
 import socket
 import sys
 
+# << Project Requirement>
+#
+# Use HTTP "GET" method : complete
+#
+# Include "Host:///" header : complete
+#
+# 301, 302 Rdeirection : incomplete
+#  - example: python Client.py http://airbedandbreakfast.com/
+#  - example: python Client.py http://maps.google.com/ - not working
+#
+# Handle a chain of multiple redirect :complete(10 redirection) : complete
+#  - example: Python Client.py http://thefacebook.com/
+#
+# Return unix exit code 0 on success, non-zero on failure : complete
+#
+# If you visit a https page, return an exit with error : complete
+#
+# Return an error code if the input url does not start with "http://" : complete
+#
+# Allow request urls to include a port number. : complete
+#  - example: pythone Client.py http://portquiz.net:8080/
+#
+# Do not requre a slash at the end of top-level urls : complete
+#  - example: python Client.py httpL//stevetarzia.com
+#  - example: python Client.py httpL//stevetarzia.com/
+#
+# You should be able to handle large pages : complete
+#  - example: python Client.py http://stevetarzia.com/libc.html
+#
 
-# Present status
-# - can do basic GET request
-# - e.g. python Client.py http://stevetarzia.com/index
 
-# To do
-# - handling errors like 301, 302 and >=400
-# - chain of mutiple redirect
-# - dealing with port number, now using 80
-# - Check the response's content-type header.
-#   Print the body to stdout only if the content-type begins with "text/html".
-#   Otherwise, exit with a non-zero exit code.
-# - Return an error code if the input url does not start with "http://"
-# - You should not require a slash at the end of top-level urls.
+url = sys.argv[1]
 
-
-
-
-# making an argument for URL based on user's typing
-# e.g. python Client.py http://northwestern.edu/somepage.html in Piazza
-for url in sys.argv[1:]:
-    url = url
 
 # print url for test
 print("user input: " + url)
 
 
 class Client:
-    # constructor
+
     def __init__(self, urlinput):
         self.address = urlinput
         self.host = ""
         self.hostip = ""
         self.path = ""
+        self.request = ""
+        self.mysocket = None
+        self.recvmessage = ""
+        self.status_code = ""
+        self.port = ""
+        self.newaddress = ""
+        self.contenttype = ""
+
+    def __del__(self):
+        print("")
+
+
+    def setaddress(self, newadd):
+        self.address = newadd
+
+
+    def makesocket(self):
+        self.mysocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    def deletesocket(self):
+        self.mysocket = None
 
     # set address, host, hostip, and path
     def set_ahhp(self):
         if self.address.startswith("http://"):
+
             third_slash = self.address.find('/', 7)
+            if third_slash == -1:
+                self.address = self.address + "/"
+                third_slash = len(self.address)-1
+            else :
+                third_slash = third_slash
+
             self.path = self.address[third_slash:]
             self.address = self.address[7:third_slash]
+
+            portlocation = self.address.find(':', 7)
+            if portlocation == -1:
+                self.address = self.address
+                self.port = 80
+            else:
+                self.port = int(self.address[portlocation+1:])
+                self.address = self.address[:portlocation]
+                print("address2: " + self.address)
+
             self.host = socket.getfqdn(self.address)
+            print("host: " + self.host)
             self.hostip = socket.gethostbyname(self.host)
-
-        if self.address.startswith("https://"):
-            exit("error: use 'http://'")
-
+            self.request = "GET " + self.path + " HTTP/1.1\r\nHost: " + self.host + "\r\n\r\n"
+            print("port: " + str(self.port))
 
 
-class ManageSocket:
+        elif self.address.startswith("https://"):
+            exit("error: you input 'https://',  please use 'http://'")
 
-    def __init__(self, input_hostip, input_path, input_host):
-        self.hostip = input_hostip
-        self.minesocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.request = "GET "+ input_path + " HTTP/1.1\r\nHost: " + input_host+"\r\n\r\n"
-        self.recvmessage = ""
-        self.status_code = ""
-        self.redirect = ""
+        else :
+            exit("Error, please use 'http://'")
 
     def connect(self):
         print("Trying to Connect")
-        self.minesocket.connect((self.hostip, 80))
+        print("hostip: "+ self.hostip)
+        self.mysocket.connect((self.hostip, self.port))
+        print("port: " + str(self.port))
 
     def sendrequest(self):
         print(self.request)
-        self.minesocket.send(self.request)
+        self.mysocket.send(self.request)
 
     def receive(self):
-        self.recvmessage = self.minesocket.recv(4096)
-        # print("Print Original Message")
-        # print(self.recvmessage)
-        # print("Print Extracted Message")
+        chunk = ""
+        self.recvmessage = self.mysocket.recv(4096)
         self.status_code = self.recvmessage[9:12]
-        # print("status code: " + self.status_code)
-
-    def foward(self):
-        if self.status_code == "301" or self.status_code == "302" :
-            Location_start = self.recvmessage.find("Location")
-            Location_end = self.recvmessage.find("\r", Location_start)
-            print("redirected to: " + self.recvmessage[Location_start:Location_end])
-            
+        print("status_code: "+self.status_code)
 
         if self.status_code == "200" :
-            print(self.recvmessage)
-            # print("Success")
+            print("Status Code: " + str(self.status_code))
+            ctypestart = self.recvmessage.find("Content-Type:") + 14
+            ctypeend = self.recvmessage.find(";")
+            self.contenttype =self.recvmessage[ctypestart:ctypeend]
+            # print("content-type: " + self.contenttype)
 
+            if self.contenttype == "text/html" :
+                while (1):
+                    chunk = self.mysocket.recv(4096)
+                    self.recvmessage += chunk
+                    if len(chunk) < 1:
+                        break
+                    # print(chunk)
+                print(self.recvmessage)
+
+            else:
+                sys.exit("content-type is not text/html")
+
+
+        elif self.status_code == "301" or self.status_code == "302" :
+            print("status code: " + str(self.status_code))
+
+        elif self.status_code >= "400" :
+            print("Status code: " + str(self.status_code))
+
+
+    def stoporfoward(self):
+
+        if self.status_code == "301" or self.status_code == "302" :
+            Location_start = self.recvmessage.find("Location") + 8
+            Location_end = self.recvmessage.find("\r", Location_start)
+            print("Redirected to: " + self.recvmessage[Location_start+2:Location_end])
+            self.newaddress = self.recvmessage[Location_start+2:Location_end]
+            self.mysocket.close()
+            return self.newaddress
+
+        elif self.status_code == "200":
+            self.newaddress = ""
+            # self.mysocket.close()
+            print"\n"
+            print("Fetch Success")
+            sys.exit(0)
+
+        elif self.status_code >= "400":
+            self.newaddress = ""
+            # self.mysocket.close()
+            sys.exit("Error, Status Code is 400 or 400+")
 
 
 
@@ -94,57 +175,39 @@ class ManageSocket:
 
 def main():
 
-    myClient2 = Client(url)
-    myClient2.set_ahhp()
+    myClient = Client(url)
+    myClient.makesocket()
+    myClient.set_ahhp()
+    myClient.connect()
+    myClient.sendrequest()
+    myClient.receive()
+    result = myClient.stoporfoward()
 
-    mysocket2 = ManageSocket(myClient2.hostip, myClient2.path, myClient2.host)
-    mysocket2.connect()
-    mysocket2.sendrequest()
-    mysocket2.receive()
-    mysocket2.foward()
+    count = 9
 
+    while(count > 0) :
 
+        if result != myClient.address:
+            myClient = Client(result)
+            print(1)
+            myClient.makesocket()
+            print(2)
+            myClient.set_ahhp()
+            print(3)
+            myClient.connect()
+            print(4)
+            myClient.sendrequest()
+            print(5)
+            myClient.receive()
+            print(6)
+            result = myClient.stoporfoward()
+            print(7)
+            myClient.__del__()
+            count = count -1
 
-
+    print("redirection is over 10")
 
 
 
 # run main function
 main()
-
-
-
-
-
-
-
-
-
-#
-# # construct a Client class with url
-# myClient = Client(url)
-# myClient.set_ahhp()
-#
-#
-# # print url for test
-# print("host: " + myClient.host)
-# print("host IP: " + myClient.hostip)
-# print("path: " + myClient.path)
-#
-# # make a socket
-# mysocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#
-# # connect the server with port 80
-# mysocket.connect((myClient.hostip, 80))
-#
-# print("Trying to connect!")
-#
-# # making a request on HTTP format
-# request = "GET "+ myClient.path + " HTTP/1.1\r\nHost: " + myClient.host+"\r\n\r\n"
-# print(request)
-#
-# # send request to server
-# mysocket.send(request)
-#
-# # print response from the server
-# print mysocket.recv(4096)
