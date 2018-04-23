@@ -104,6 +104,7 @@ class Client:
                 self.hostip = socket.gethostbyname(self.host)
             print("hostip: " + self.hostip)
             self.request = "GET " + self.path + " HTTP/1.1\r\nHost: " + self.host + "\r\n\r\n"
+            self.request = "GET " + self.path + " HTTP/1.1\r\nHost: " + self.address + "\r\n\r\n"
             print("port: " + str(self.port))
 
 
@@ -140,7 +141,7 @@ class Client:
                 while (1):
                     chunk = self.mysocket.recv(4096)
                     self.recvmessage += chunk
-                    if len(chunk) < 1:
+                    if len(chunk) <= 1:
                         break
                     # print(chunk)
                 print(self.recvmessage)
