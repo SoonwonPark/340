@@ -89,11 +89,20 @@ class Client:
             else:
                 self.port = int(self.address[portlocation+1:])
                 self.address = self.address[:portlocation]
-                print("address2: " + self.address)
+                # print("address2: " + self.address)
 
-            self.host = socket.getfqdn(self.address)
+            print("address: " + self.address)
+            print("path: " + self.path)
+            if self.address == "localhost" :
+                self.host = "localhost"
+            else:
+                self.host = socket.getfqdn(self.address)
             print("host: " + self.host)
-            self.hostip = socket.gethostbyname(self.host)
+            if self.address == "localhost":
+                self.hostip = "127.0.0.1"
+            else:
+                self.hostip = socket.gethostbyname(self.host)
+            print("hostip: " + self.hostip)
             self.request = "GET " + self.path + " HTTP/1.1\r\nHost: " + self.host + "\r\n\r\n"
             print("port: " + str(self.port))
 
