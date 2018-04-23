@@ -131,9 +131,10 @@ class Client:
         if self.status_code == "200" :
             print("Status Code: " + str(self.status_code))
             ctypestart = self.recvmessage.find("Content-Type:") + 14
-            ctypeend = self.recvmessage.find(";")
+            # ctypeend = self.recvmessage.find(";")
+            ctypeend = ctypestart + 9
             self.contenttype =self.recvmessage[ctypestart:ctypeend]
-            # print("content-type: " + self.contenttype)
+            print("content-type: " + self.contenttype)
 
             if self.contenttype == "text/html" :
                 while (1):
