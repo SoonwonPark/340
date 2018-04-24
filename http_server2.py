@@ -24,7 +24,7 @@ class HTTPserver():
 		# AF_INET: an address family (IPv4) that the socket uses
 		# SOCK_STREAM: TCP socket
 		self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		self.s.setblocking(0)
+		self.s.setblocking(1)
 
 	# create a socket connection
 	def start(self):
@@ -50,7 +50,7 @@ class HTTPserver():
 				if r is self.s:
 					conn, addr = r.accept()
 					print "A client connected: " + str(addr)
-					conn.setblocking(0)
+					conn.setblocking(1)
 					inputs.append(conn)
 					message_queues[conn] = Queue.Queue()
 				# receive data and handle HTTP request in it

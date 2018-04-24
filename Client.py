@@ -1,5 +1,6 @@
 import socket
 import sys
+import re
 
 # << Project Requirement>
 #
@@ -48,11 +49,14 @@ class Client:
         self.path = ""
         self.request = ""
         self.mysocket = None
+        self.PACKET_SIZE = 4096
         self.recvmessage = ""
         self.status_code = ""
         self.port = ""
         self.newaddress = ""
         self.contenttype = ""
+        self.contentlength = ""
+
 
     def __del__(self):
         print("")
@@ -125,26 +129,29 @@ class Client:
         self.mysocket.send(self.request)
 
     def receive(self):
-        chunk = ""
-        self.recvmessage = self.mysocket.recv(4096)
-        self.status_code = self.recvmessage[9:12]
+        self.recvmessage = self.mysocket.recv(self.PACKET_SIZE)
+        data = self.recvmessage.split('\r\n\r\n')
+        header = data[0]
+        content = data[1]
+        splitted_header = re.split(' |\n', header)
+        self.status_code = splitted_header[1]
 
-        if self.status_code == "200" :
+        if self.status_code == "200":
             print("Status Code: " + str(self.status_code))
-            ctypestart = self.recvmessage.find("Content-Type:") + 14
-            # ctypeend = self.recvmessage.find(";")
-            ctypeend = ctypestart + 9
-            self.contenttype =self.recvmessage[ctypestart:ctypeend]
+            self.contenttype = splitted_header[splitted_header.index("Content-Type:") + 1]
             print("content-type: " + self.contenttype)
+            self.contentlength = splitted_header[splitted_header.index("Content-Length:") + 1]
 
-            if self.contenttype == "text/html" :
-                while (1):
-                    chunk = self.mysocket.recv(4096)
-                    self.recvmessage += chunk
-                    if len(chunk) <= 1:
-                        break
-                    # print(chunk)
+            if self.contenttype == "text/html":
+                length_left = int(self.contentlength) - self.PACKET_SIZE
+                while length_left > 0:
+                    print length_left
+                    chunk = self.mysocket.recv(self.PACKET_SIZE)
+                    content += chunk
+                    length_left -= self.PACKET_SIZE
+                    print length_left
                 print(self.recvmessage)
+                print "end"
 
             else:
                 sys.exit("content-type is not text/html")
