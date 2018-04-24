@@ -101,6 +101,7 @@ class Client:
 			if contenttype == "text/html":
 				length_left = int(contentlength) - self.PACKET_SIZE
 				while length_left > 0:
+					print length_left
 					chunk = self.mysocket.recv(self.PACKET_SIZE)
 					content += chunk
 					length_left -= self.PACKET_SIZE
