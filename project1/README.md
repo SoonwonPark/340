@@ -1,4 +1,4 @@
-# 340NW
+# 340NW - project1
 
 Make sure you..
 - Set '.gitignore' file not to share personal setting files (.idea, .DS_STORE ...)
