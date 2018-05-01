@@ -2,6 +2,9 @@ __author__ = "Byungjin Jun"
 
 # USAGE: sudo python udp_dns_proxy.py
 # sudo permission is necessary since it binds with port 53
+# to test
+# 1. run this locally
+# 2. runt nslookup "TARGET DOMAIN" 127.0.0.1
 
 import socket
 
