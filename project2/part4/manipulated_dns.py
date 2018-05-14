@@ -167,7 +167,6 @@ class DNSProxy():
             Answer = self.make_answer()
 
             res = Tid + Flags + Counts + Queries + Answer
-
             return res
 
         else:
@@ -195,7 +194,6 @@ class DNSProxy():
         Flags1 = RA + Z + Rcode
         Flags1 = self.make_bit(Flags1)
         Flags = Flags0 + Flags1
-
         return Flags
 
     def make_counts(self):
@@ -224,7 +222,6 @@ class DNSProxy():
         ADCOUNT1 = self.make_bit(ADCOUNT1)
 
         Counts = QDCOUNT0 + QDCOUNT1 + ANCOUNT0 + ANCOUNT1 + ARCOUNT0 + ARCOUNT1 + ADCOUNT0 + ADCOUNT1
-
         return Counts
 
 
@@ -288,7 +285,6 @@ class DNSProxy():
         Dname = first + second + third + fourth
 
         Answer = Name + Type + Class + Ttl + Dl + Dname
-
         return Answer
 
 
