@@ -80,7 +80,9 @@ class AdsServer():
 	def serve_http(self, req):
 		req_split = re.split(' |\n', req)
 		method = req_split[0]
-		hostname = req_split[req_split.index("Host:") + 1]
+		hostname = ""
+		if "Host:" in req_split:
+			hostname = req_split[req_split.index("Host:") + 1]
 		print "method: " + method
 		print "hostname: " + hostname
 
