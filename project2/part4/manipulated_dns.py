@@ -3,7 +3,7 @@ __author__ = "Byungjin Jun"
 # USAGE: sudo python tcp_dns_proxy.py
 # sudo permission is necessary since it binds with port 53
 # to test,
-# sudo python manipulated_dns.py 18.188.183.162
+# sudo python manipulated_dns.py 18.236.156.245 (Soonwon Park AWS Public IP Address)
 
 
 import socket
