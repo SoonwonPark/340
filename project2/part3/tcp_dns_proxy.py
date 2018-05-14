@@ -122,7 +122,11 @@ class DNSProxy():
 	def serve_dns_udp(self, req):
 		req_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		req_sock.sendto(req, (self.upstream_ip, 53))
-		res = req_sock.recv(self.PACKET_SIZE)
+		req_sock.settimeout(1.0)
+		try:
+			res = req_sock.recv(self.PACKET_SIZE)
+		except socket.timeout:
+			res = self.serve_dns_udp(req)
 		return res
 
 	# serve to the dns request (tcp)
