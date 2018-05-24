@@ -1,3 +1,5 @@
+project3/cmake-build-debug
+project/CMakeLists.txt
 .idea
 venv
 .DS_Store
