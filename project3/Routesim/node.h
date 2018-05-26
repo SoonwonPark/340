@@ -26,6 +26,7 @@ class Node {
 #endif
 
 #if defined(DISTANCEVECTOR)
+    Table rTable;
 #endif
 
   // students will add protocol-specific data here

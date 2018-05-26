@@ -4,14 +4,14 @@
 
 
 Node::Node(const unsigned n, SimulationContext *c, double b, double l) : 
-    number(n), context(c), bw(b), lat(l) 
-{}
+    number(n), context(c), bw(b), lat(l) {
+    }
 
 Node::Node() 
 { throw GeneralException(); }
 
-Node::Node(const Node &rhs) : 
-  number(rhs.number), context(rhs.context), bw(rhs.bw), lat(rhs.lat) {}
+Node::Node(const Node &rhs) : number(rhs.number), context(rhs.context), bw(rhs.bw), lat(rhs.lat) {
+}
 
 Node & Node::operator=(const Node &rhs) 
 {
@@ -43,11 +43,12 @@ Node::~Node()
 // so that the corresponding node can recieve the ROUTING_MESSAGE_ARRIVAL event at the proper time
 void Node::SendToNeighbors(const RoutingMessage *m)
 {
+    context->SendToNeighbors(this, m);
 }
 
 void Node::SendToNeighbor(const Node *n, const RoutingMessage *m)
 {
-
+    context->SendToNeighbor(this, n, m);
 }
 
 deque<Node*> *Node::GetNeighbors()
@@ -152,12 +153,39 @@ void Node::LinkHasBeenUpdated(const Link *l)
 {
   // update our table
   // send out routing mesages
-  cerr << *this<<": Link Update: "<<*l<<endl;
+    cerr << *this<<": Link Update: "<<*l<<endl;
+    unsigned source = l->GetSrc();
+    unsigned destination = l->GetDest();
+    double cost = l->GetLatency();
+
+    Table oldTable = rTable;
+    rTable.add_edge(source, destination, cost);
+    bool result = rTable.check_same(oldTable);
+
+    if (result == true){
+        std::vector<double> vectorToSend = rTable.retrieveVector(source);
+        SendToNeighbors(new RoutingMessage(source, vectorToSend));
+    }
 }
 
 
 void Node::ProcessIncomingRoutingMessage(const RoutingMessage *m)
 {
+    unsigned source = m->getSrc();
+    std::vector<double> DV = m->getDistVector();
+
+    Table oldTable = rTable;
+
+    for(unsigned i = 0; i < rTable.get_size(); i++){
+        rTable.add_edge(source, i, DV[i]);
+    }
+
+    bool result = rTable.check_same(oldTable);
+
+    if (result == true){
+        std::vector<double> vectorToSend = rTable.retrieveVector(source);
+        SendToNeighbors(new RoutingMessage(source, vectorToSend));
+    }
 
 }
 
@@ -169,10 +197,18 @@ void Node::TimeOut()
 
 Node *Node::GetNextHop(const Node *destination) const
 {
+    Table* myTable = GetRoutingTable();
+    unsigned destNumber = destination->number;
+    unsigned currentNumber = number;
+    unsigned nextNumber = myTable->find_next_node(currentNumber, destNumber);
+
+    return new Node(nextNumber, context, bw, lat);
+
 }
 
 Table *Node::GetRoutingTable() const
 {
+    return new Table(rTable);
 }
 
 

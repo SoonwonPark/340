@@ -11,12 +11,12 @@ Topology::Topology()
 Topology::~Topology()
 {
   for (deque<Node*>::iterator i=nodes.begin();
-	   i!=nodes.end(); ++i) { 
+     i!=nodes.end(); ++i) { 
     delete *i;
   }
   nodes.clear();
   for (deque<Link*>::iterator i=links.begin();
-	   i!=links.end(); ++i) { 
+     i!=links.end(); ++i) { 
     delete *i;
   }
   links.clear();
@@ -25,7 +25,7 @@ Topology::~Topology()
 deque<Node*>::iterator Topology::FindMatchingNodeIt(const Node *n)
 {
   for (deque<Node*>::iterator i=nodes.begin();
-	   i!=nodes.end(); ++i) { 
+     i!=nodes.end(); ++i) { 
     if ((**i).Matches(*n)) {
       return i;
     }
@@ -49,7 +49,7 @@ deque<Link*> * Topology::GetOutgoingLinks(const Node *src)
   deque<Link*> *out = new deque<Link*>;
 
   for (deque<Link*>::iterator i=links.begin();
-	   i!=links.end(); ++i) { 
+     i!=links.end(); ++i) { 
     if ((*i)->GetSrc()==src->GetNumber()) { 
       out->push_back(*i);
     }
@@ -63,7 +63,7 @@ deque<Node*> *Topology::GetNeighbors(const Node *n)
   deque<Node*> *nodes = new deque<Node*>;
 
   for (deque<Link*>::iterator i=temp->begin();
-	   i!=temp->end(); ++i) { 
+     i!=temp->end(); ++i) { 
     Node x = Node((*i)->GetDest(),0,0,0);
     nodes->push_back(FindMatchingNode(&x));
   }
@@ -74,7 +74,7 @@ deque<Node*> *Topology::GetNeighbors(const Node *n)
 deque<Link*>::iterator Topology::FindMatchingLinkIt(const Link *l)
 {
   for (deque<Link*>::iterator i=links.begin();
-	   i!=links.end(); ++i) { 
+     i!=links.end(); ++i) { 
     if ((**i).Matches(*l)) {
       return i;
     }
@@ -198,6 +198,7 @@ ostream &Topology::Print(ostream &os) const
 //
 // This is totally disgusting
 //
+/** @param links is initially empty and will store the result */
 void Topology::CollectShortestPathTreeLinks(const Node &src, deque<Link> &links) 
 {
   vector<double> distance(nodes.size());
@@ -205,9 +206,11 @@ void Topology::CollectShortestPathTreeLinks(const Node &src, deque<Link> &links)
   deque<unsigned> visited;
   deque<unsigned> unvisited;
  
-
+  // initialize the distance vector to "infinity"
   for (deque<Node*>::const_iterator i=nodes.begin();i!=nodes.end();++i) {
     unvisited.push_back((**i).GetNumber());
+    // Invent a new "dummy" node N+1 which is initially the predecessor of all nodes.
+    // At the end, any unreachable nodes will still having this precedessor.
     pred[(**i).GetNumber()]=nodes.size()+1;
     if ((**i).GetNumber()!=src.GetNumber()) {
       distance[(**i).GetNumber()]=99e99;
@@ -216,30 +219,35 @@ void Topology::CollectShortestPathTreeLinks(const Node &src, deque<Link> &links)
     }
   }
   
+  // visit each node
   while (unvisited.size()>0) {
+    // visit the node that is currently closest to the source
     double curmin=100e99;
     deque<unsigned>::iterator c;
     unsigned closest;
     for (deque<unsigned>::iterator i=unvisited.begin(); i!=unvisited.end();++i) { 
       if (distance[*i]<curmin) { 
-	curmin=distance[*i];
-	c=i;
+  curmin=distance[*i];
+  c=i;
       }
     }
     closest=*c;
     unvisited.erase(c);
     visited.push_back(closest);
+
+    // add edge to this node to the shortest path tree.
     if (closest!=src.GetNumber()) { 
       links.push_back(Link(pred[closest],closest,0,0,0));
     }
+    // relax each outgoing edge from the node we're visiting
     Node x = Node(closest,0,0,0);
     deque<Link*> *adj= GetOutgoingLinks(FindMatchingNode(&x));
     for (deque<Link*>::const_iterator i=adj->begin();i!=adj->end();++i) {
       unsigned dest=(**i).GetDest();
-      double dist=(**i).GetLatency();
+      double dist=(**i).GetLatency() + curmin;
       if (dist<distance[dest]) { 
-	distance[dest]=dist;
-	pred[dest]=closest;
+  distance[dest]=dist;
+  pred[dest]=closest;
       }
     }
     delete adj;
@@ -250,6 +258,4 @@ void Topology::CollectShortestPathLinks(const Node &src, const Node &dest, deque
 {
   CollectShortestPathTreeLinks(src,links);
 }
-
-
 

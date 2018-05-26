@@ -27,11 +27,18 @@ class RoutingMessage {
 #if defined(DISTANCEVECTOR)
 class RoutingMessage {
 
-  RoutingMessage();
-  RoutingMessage(const RoutingMessage &rhs);
-  RoutingMessage &operator=(const RoutingMessage &rhs);
+public:
+    RoutingMessage();
+    RoutingMessage(unsigned src, std::vector<double> dv);
+    RoutingMessage(const RoutingMessage &rhs);
+    RoutingMessage &operator=(const RoutingMessage &rhs);
+    unsigned getSrc() const;
+    std::vector<double> getDistVector() const;
+    ostream & Print(ostream &os) const;
 
-  ostream & Print(ostream &os) const;
+private:
+    unsigned srcNode;
+    std::vector<double> distVector;
 };
 #endif
 

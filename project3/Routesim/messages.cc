@@ -34,12 +34,19 @@ ostream &RoutingMessage::Print(ostream &os) const
   return os;
 }
 
-RoutingMessage::RoutingMessage()
-{}
+RoutingMessage::RoutingMessage(unsigned src, std::vector<double> dv) : srcNode(src), distVector(dv){}
 
+RoutingMessage::RoutingMessage(const RoutingMessage &rhs) : srcNode(rhs.srcNode), distVector(rhs.distVector){}
 
-RoutingMessage::RoutingMessage(const RoutingMessage &rhs)
-{}
+unsigned RoutingMessage::getSrc() const{
+
+    return srcNode;
+}
+
+std::vector<double> RoutingMessage::getDistVector() const{
+
+    return distVector;
+}
 
 #endif
 

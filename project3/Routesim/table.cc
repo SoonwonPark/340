@@ -159,5 +159,10 @@ void Table::update_Bellman_Ford() {
     }
 }
 
+std::vector<double> Table::retrieveVector(unsigned source) {
+
+    return rTable[source];
+}
+
 
 #endif

@@ -78,8 +78,10 @@ public:
 
     void update_Bellman_Ford();
 
+    std::vector<double> retrieveVector(unsigned);
+
 private:
-    std::vector<std::vector<double>> rTable;
+    std::vector<std::vector<double> > rTable;
 
 };
 #endif
