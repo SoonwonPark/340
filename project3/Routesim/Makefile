@@ -1,7 +1,7 @@
 AR = ar
 CXX = g++
-#CXXFLAGS = -g -ggdb -Wall 
-CXXFLAGS = -std=c++0x -g -gstabs+ -ggdb -Wall
+CXXFLAGS = -g -ggdb -Wall 
+#CXXFLAGS = -std=c++0x -g -gstab+ -ggdb -Wall
 #CXXFLAGS = -g -gstabs+ -ggdb -Wall
 LDFLAGS = 
 
