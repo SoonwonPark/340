@@ -87,15 +87,16 @@ map<int, int> Table::MakeRTable(int src) {
 	struct RTable rt = Dijkstra(src);
 	map<int, int> out;
 	for (int i=0; i < rt.nodes.size(); i++) {
-		
-		int current;
 		int pre = rt.prevs.at(i);
-		while (pre != src) {
-			current = pre;
-			int pos = find(rt.nodes.begin(), rt.nodes.end(), pre) - rt.nodes.begin();
-			pre = rt.prevs.at(pos);
+		int current = pre;
+		if (pre != src) {
+			while (pre != src) {
+				current = pre;
+				int pos = find(rt.nodes.begin(), rt.nodes.end(), pre) - rt.nodes.begin();
+				pre = rt.prevs.at(pos);
+			}
 		}
-		cout<< rt.nodes.at(i) << current << endl;
+		//cout<< rt.nodes.at(i) << current << endl;
 		out.insert(pair<int, int>(rt.nodes.at(i), current));
 	}
 

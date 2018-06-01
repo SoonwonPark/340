@@ -52,34 +52,34 @@ Node::~Node()
 // so that the corresponding node can recieve the ROUTING_MESSAGE_ARRIVAL event at the proper time
 void Node::SendToNeighbors(const RoutingMessage *m)
 {
-//    context->SendToNeighbors(this, m);
-	deque<Node*> * neighbors = GetNeighbors();
-	deque<Node*>::iterator it;
-	cout << neighbors->size() << endl;
-	for(it = neighbors->begin(); it != neighbors->end(); it++){
-		const RoutingMessage * m_send = new RoutingMessage(*m);
-		cout <<"latency: " << m_send->GetLatency() << endl;
-		SendToNeighbor(*it,m_send);
-	}
+    context->SendToNeighbors(this, m);
+//	deque<Node*> * neighbors = GetNeighbors();
+//	deque<Node*>::iterator it;
+//	cout << neighbors->size() << endl;
+//	for(it = neighbors->begin(); it != neighbors->end(); it++){
+//		const RoutingMessage * m_send = new RoutingMessage(*m);
+//		cout <<"latency: " << m_send->GetLatency() << endl;
+//		SendToNeighbor(*it,m_send);
+//	}
 }
 
 void Node::SendToNeighbor(const Node *n, const RoutingMessage *m)
 {
-//context->SendToNeighbor(this, n, m);
-	Link * l = new Link();
-	l->SetSrc(this->number);
-	l->SetDest(n->number);
-
-	const Link * l_copy = new Link(*l);
-	Link * l_found = context->FindMatchingLink(l_copy);
-	if(l_found != 0) {
-		Event * event = new Event(context->GetTime()+l_found->GetLatency(),ROUTING_MESSAGE_ARRIVAL, (void *) n, new RoutingMessage(*m));
-		context->PostEvent(event);
-	}
-
-	delete l_found;
-	delete l;
-	cout << "sent to a n" << endl;
+context->SendToNeighbor(this, n, m);
+//	Link * l = new Link();
+//	l->SetSrc(this->number);
+//	l->SetDest(n->number);
+//
+//	const Link * l_copy = new Link(*l);
+//	Link * l_found = context->FindMatchingLink(l_copy);
+//	if(l_found != 0) {
+//		Event * event = new Event(context->GetTime()+l_found->GetLatency(),ROUTING_MESSAGE_ARRIVAL, (void *) n, new RoutingMessage(*m));
+//		context->PostEvent(event);
+//	}
+//
+//	delete l_found;
+//	delete l;
+//	cout << "sent to a n" << endl;
 }
 
 deque<Node*> *Node::GetNeighbors()
@@ -176,11 +176,14 @@ Node *Node::GetNextHop(const Node *destination)
 		return this;
 	map<int, int> rtable = tb->MakeRTable(number);
 	int nextHop = rtable[destination->number];
+	if (nextHop == number) {
+		nextHop = destination->number;
+	}
 	// create the return
 	deque<Node*> *n = this->GetNeighbors();
 	for (deque<Node*>::const_iterator i = n->begin(); i != n->end(); ++i) {
 		if ((Node(nextHop, 0, 0, 0).Matches(**i))) {
-			return new Node(**i); // change to new node **i
+			return new Node(**i);
 		}
 	}
    return 0;	
