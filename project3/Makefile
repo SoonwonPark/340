@@ -1,11 +1,11 @@
 AR = ar
-CXX = /usr/local/bin/g++-8
-#CXX = g++
-CXXFLAGS = -g -ggdb -Wall 
+CXX = g++
+#CXXFLAGS = -g -ggdb -Wall
+CXXFLAGS = -std=c++0x -g -ggdb -Wall
 LDFLAGS = 
 
-#TYPE = GENERIC
-TYPE = LINKSTATE
+TYPE = GENERIC
+#TYPE = LINKSTATE
 #TYPE = DISTANCEVECTOR
 
 LIB_OBJS = node.o       \

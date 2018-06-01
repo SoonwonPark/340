@@ -6,10 +6,12 @@
 Node::Node(const unsigned n, SimulationContext *c, double b, double l) : 
     number(n), context(c), bw(b), lat(l) 
 {
-	  // Create a new table	
-	  #if defined(LINKSTATE)
-		this-> tb = new Table();
-	  #endif
+    #if defined(LINKSTATE)
+      this-> tb = new Table();
+    #endif
+    #if defined(DISTANCEVECTOR)
+        myTable = Table(n);
+    #endif
 }
 
 Node::Node() 
@@ -17,9 +19,12 @@ Node::Node()
 
 Node::Node(const Node &rhs) : 
   number(rhs.number), context(rhs.context), bw(rhs.bw), lat(rhs.lat) {
-	#if defined(LINKSTATE)
-	  this->tb = rhs.tb;
-	#endif
+    #if defined(LINKSTATE)
+      this->tb = rhs.tb;
+    #endif
+    #if defined(DISTANCEVECTOR)
+        myTable = rhs.myTable;
+    #endif
   }
 
 Node & Node::operator=(const Node &rhs) 
@@ -52,37 +57,28 @@ Node::~Node()
 // so that the corresponding node can recieve the ROUTING_MESSAGE_ARRIVAL event at the proper time
 void Node::SendToNeighbors(const RoutingMessage *m)
 {
-    context->SendToNeighbors(this, m);
-//	deque<Node*> * neighbors = GetNeighbors();
-//	deque<Node*>::iterator it;
-//	cout << neighbors->size() << endl;
-//	for(it = neighbors->begin(); it != neighbors->end(); it++){
-//		const RoutingMessage * m_send = new RoutingMessage(*m);
-//		cout <<"latency: " << m_send->GetLatency() << endl;
-//		SendToNeighbor(*it,m_send);
-//	}
+    deque<Node*> * neighbors = GetNeighbors();
+    deque<Node*>::iterator it;
+    for(it = neighbors->begin(); it != neighbors->end(); it++){
+        const RoutingMessage * m_send = new RoutingMessage(*m);
+        SendToNeighbor(*it, m_send);
+    }
 }
 
 void Node::SendToNeighbor(const Node *n, const RoutingMessage *m)
 {
-context->SendToNeighbor(this, n, m);
-//	Link * l = new Link();
-//	l->SetSrc(this->number);
-//	l->SetDest(n->number);
-//
-//	const Link * l_copy = new Link(*l);
-//	Link * l_found = context->FindMatchingLink(l_copy);
-//	if(l_found != 0) {
-//		Event * event = new Event(context->GetTime()+l_found->GetLatency(),ROUTING_MESSAGE_ARRIVAL, (void *) n, new RoutingMessage(*m));
-//		context->PostEvent(event);
-//	}
-//
-//	delete l_found;
-//	delete l;
-//	cout << "sent to a n" << endl;
+    Link * l = new Link();
+    l->SetSrc(this->number);
+    l->SetDest(n->number);
+
+    Link * l_found = context->FindMatchingLink(l);
+    if(l_found != 0) {
+        Event * event = new Event(context->GetTime()+l_found->GetLatency(),ROUTING_MESSAGE_ARRIVAL, (void*)n, new RoutingMessage(*m));
+        context->PostEvent(event);
+    }
 }
 
-deque<Node*> *Node::GetNeighbors()
+deque<Node*> *Node::GetNeighbors() const
 {
   return context->GetNeighbors(this);
 }
@@ -139,7 +135,7 @@ ostream & Node::Print(ostream &os) const
 #endif
 
 #if defined(LINKSTATE)
-//Node::Node(const Node &rhs) : number(rhs.number), context(rhs.context), bw(rhs.bw), lat(rhs.lat) {}
+
 
 void Node::LinkHasBeenUpdated(const Link *l)
 {
@@ -158,7 +154,7 @@ void Node::LinkHasBeenUpdated(const Link *l)
 void Node::ProcessIncomingRoutingMessage(const RoutingMessage *m)
 {
 cout << "2" << endl; 
-  	cerr << *this << " Routing Message: "<<*m;
+    cerr << *this << " Routing Message: "<<*m;
   if (tb->UpdateTable(m)!=0) {
       SendToNeighbors(m);
   }
@@ -171,22 +167,22 @@ void Node::TimeOut()
 
 Node *Node::GetNextHop(const Node *destination)
 {
-	cerr << *this << " Getting Next hop: "<<*destination << endl;
-	if(number == destination->number)
-		return this;
-	map<int, int> rtable = tb->MakeRTable(number);
-	int nextHop = rtable[destination->number];
-	if (nextHop == number) {
-		nextHop = destination->number;
-	}
-	// create the return
-	deque<Node*> *n = this->GetNeighbors();
-	for (deque<Node*>::const_iterator i = n->begin(); i != n->end(); ++i) {
-		if ((Node(nextHop, 0, 0, 0).Matches(**i))) {
-			return new Node(**i);
-		}
-	}
-   return 0;	
+  cerr << *this << " Getting Next hop: "<<*destination << endl;
+  if(number == destination->number)
+    return this;
+  map<int, int> rtable = tb->MakeRTable(number);
+  int nextHop = rtable[destination->number];
+  if (nextHop == number) {
+    nextHop = destination->number;
+  }
+  // create the return
+  deque<Node*> *n = this->GetNeighbors();
+  for (deque<Node*>::const_iterator i = n->begin(); i != n->end(); ++i) {
+    if ((Node(nextHop, 0, 0, 0).Matches(**i))) {
+      return new Node(**i);
+    }
+  }
+   return 0;  
 }
 
 Table *Node::GetRoutingTable() const
@@ -199,6 +195,7 @@ ostream & Node::Print(ostream &os) const
   os << "Node(number="<<number<<", lat="<<lat<<", bw="<<bw<<")";
   return os;
 }
+
 #endif
 
 
@@ -206,14 +203,36 @@ ostream & Node::Print(ostream &os) const
 
 void Node::LinkHasBeenUpdated(const Link *l)
 {
-  // update our table
-  // send out routing mesages
-  cerr << *this<<": Link Update: "<<*l<<endl;
+    cerr << *this<<": Link Update: "<<*l<<endl;
+
+    unsigned src = l->GetSrc();
+    unsigned dest = l->GetDest();
+    double cost = l->GetLatency();
+    bool check = false;
+    check = myTable.change_link(src, dest, cost);
+
+    if(check == true){
+        vector<double> myMessage = myTable.retrieveDV();
+        SendToNeighbors(new RoutingMessage(number, myMessage));
+    }
+
 }
 
 
 void Node::ProcessIncomingRoutingMessage(const RoutingMessage *m)
 {
+    cerr << *this << ": Routing Message Received: " << *m << endl;
+
+    unsigned src = m->get_source();
+    vector<double> incomingDv = m->get_dv();
+    vector<bool> boolVector;
+    bool check = false;
+    check = myTable.add_DV(src, incomingDv);
+
+    if(check == true){
+        vector<double> myMessage = myTable.retrieveDV();
+        SendToNeighbors(new RoutingMessage(number, myMessage));
+    }
 
 }
 
@@ -223,18 +242,30 @@ void Node::TimeOut()
 }
 
 
-Node *Node::GetNextHop(const Node *destination) const
+Node *Node::GetNextHop(const Node *destination)
 {
+    unsigned dest = destination->GetNumber();
+    unsigned nextHop = myTable.find_next_node(dest);
+
+    if (nextHop != number) {
+        deque<Node *> *myNeighbors = this->GetNeighbors();
+        for (deque<Node*>::iterator iter = myNeighbors->begin(); iter != myNeighbors->end(); ++iter) {
+            if ((*iter)->Matches(Node(nextHop, context, bw, lat))) {
+                return new Node(**iter);
+            }
+        }
+    }
 }
 
 Table *Node::GetRoutingTable() const
 {
+    return new Table(this->myTable);
 }
 
 
 ostream & Node::Print(ostream &os) const
 {
-  os << "Node(number="<<number<<", lat="<<lat<<", bw="<<bw;
+  os << "Node(number="<<number<<", lat="<<lat<<", bw="<<bw <<")";
   return os;
 }
 #endif

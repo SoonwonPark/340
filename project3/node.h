@@ -1,32 +1,31 @@
 #ifndef _node
 #define _node
 
-#include <new>
-#include <iostream>
-#include <deque>
-
-
 class RoutingMessage;
 class Table;
 class Link;
 class SimulationContext;
 
 #include "table.h"
+#include <new>
+#include <iostream>
+#include <deque>
 
 using namespace std;
 
 class Node {
- private:
-  unsigned number;
-  SimulationContext    *context;
-  double   bw;
-  double   lat;
+private:
+    unsigned number;
+    SimulationContext    *context;
+    double   bw;
+    double   lat;
 
 #if defined(LINKSTATE)
-	Table *tb;
+  Table *tb;
 #endif
 
 #if defined(DISTANCEVECTOR)
+    Table myTable;
 #endif
 
   // students will add protocol-specific data here
@@ -50,7 +49,7 @@ class Node {
 
   virtual void SendToNeighbors(const RoutingMessage *m);
   virtual void SendToNeighbor(const Node *n, const RoutingMessage *m);
-  virtual deque<Node*> *GetNeighbors();
+  virtual deque<Node*> *GetNeighbors() const;
   virtual void SetTimeOut(const double timefromnow);
 
   //
