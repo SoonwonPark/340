@@ -11,12 +11,12 @@ Topology::Topology()
 Topology::~Topology()
 {
   for (deque<Node*>::iterator i=nodes.begin();
-     i!=nodes.end(); ++i) { 
+	   i!=nodes.end(); ++i) { 
     delete *i;
   }
   nodes.clear();
   for (deque<Link*>::iterator i=links.begin();
-     i!=links.end(); ++i) { 
+	   i!=links.end(); ++i) { 
     delete *i;
   }
   links.clear();
@@ -25,7 +25,7 @@ Topology::~Topology()
 deque<Node*>::iterator Topology::FindMatchingNodeIt(const Node *n)
 {
   for (deque<Node*>::iterator i=nodes.begin();
-     i!=nodes.end(); ++i) { 
+	   i!=nodes.end(); ++i) { 
     if ((**i).Matches(*n)) {
       return i;
     }
@@ -49,7 +49,7 @@ deque<Link*> * Topology::GetOutgoingLinks(const Node *src)
   deque<Link*> *out = new deque<Link*>;
 
   for (deque<Link*>::iterator i=links.begin();
-     i!=links.end(); ++i) { 
+	   i!=links.end(); ++i) { 
     if ((*i)->GetSrc()==src->GetNumber()) { 
       out->push_back(*i);
     }
@@ -63,7 +63,7 @@ deque<Node*> *Topology::GetNeighbors(const Node *n)
   deque<Node*> *nodes = new deque<Node*>;
 
   for (deque<Link*>::iterator i=temp->begin();
-     i!=temp->end(); ++i) { 
+	   i!=temp->end(); ++i) { 
     Node x = Node((*i)->GetDest(),0,0,0);
     nodes->push_back(FindMatchingNode(&x));
   }
@@ -74,7 +74,7 @@ deque<Node*> *Topology::GetNeighbors(const Node *n)
 deque<Link*>::iterator Topology::FindMatchingLinkIt(const Link *l)
 {
   for (deque<Link*>::iterator i=links.begin();
-     i!=links.end(); ++i) { 
+	   i!=links.end(); ++i) { 
     if ((**i).Matches(*l)) {
       return i;
     }
@@ -227,8 +227,8 @@ void Topology::CollectShortestPathTreeLinks(const Node &src, deque<Link> &links)
     unsigned closest;
     for (deque<unsigned>::iterator i=unvisited.begin(); i!=unvisited.end();++i) { 
       if (distance[*i]<curmin) { 
-  curmin=distance[*i];
-  c=i;
+	curmin=distance[*i];
+	c=i;
       }
     }
     closest=*c;
@@ -246,8 +246,8 @@ void Topology::CollectShortestPathTreeLinks(const Node &src, deque<Link> &links)
       unsigned dest=(**i).GetDest();
       double dist=(**i).GetLatency() + curmin;
       if (dist<distance[dest]) { 
-  distance[dest]=dist;
-  pred[dest]=closest;
+	distance[dest]=dist;
+	pred[dest]=closest;
       }
     }
     delete adj;
@@ -258,4 +258,6 @@ void Topology::CollectShortestPathLinks(const Node &src, const Node &dest, deque
 {
   CollectShortestPathTreeLinks(src,links);
 }
+
+
 
